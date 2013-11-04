@@ -12,7 +12,7 @@
 # Notes:
 #
 #   > As of 2013-10-20, the TOS imp_volatility() function does not support
-#     aggregation period's less than DAY. This script thus defaults to DAY
+#     aggregation period's less than DAY. Thus this script defaults to DAY
 #     if the user specifies IMP_VOLATILITY as the 'rank_type' and an 
 #     aggregation period less than DAY.
 #
@@ -20,17 +20,18 @@
 #     time "tick" data for the most recent value of the Fundamental Data 
 #     Type specified, regardless of aggregation period. As a result, the 
 #     rank value will also change in real time, except for IV as described
-#     in the previous note.
+#     in the previous note. In OnDemand, imp_volatility() returns NaN
+#     whereas in Live mode, imp_volatility() returns a non-NaN static value.
 #
 #   > Sometimes fundamental data will be returned as NaN. As a result,
 #     current rank will return NaN. If instead the previous valid non-NaN
-#     rank is desired, set 'no_nan_rank' to yes. 
+#     rank is desired, set 'no_nan_rank' to yes (YES is the default setting)
 #
 #   > The "previous valid non-NaN data" is based on the value computed for
 #     the previous rank. Very simply, if fundamental data is NaN, then
 #     rank[1] will be returned, otherwise (value-lowest)/(highest-lowest).
-#     So, due to initial conditions, it is possible for the first value,
-#     and following values until non-NaN data emerges, is zero.
+#     Due to initial conditions, it is possible for the first value (and
+#     following values until non-NaN data emerges) to be zero.
 #
 #     What using rank[1] means for real time streaming data (market hours
 #     data in OnDemand mode or Live mode) depends on how the underlying
@@ -41,8 +42,8 @@
 # subgraph, the rank and its hi and lo alert triggered instances will be
 # shown as it occurred over time. If 'show_rank_label' is enabled, the most
 # recent percentile rank will be displayed on the chart. To use this script
-# purely as a label on the main price chart, make sure to uncheck 'show plot'
-# in the script settings window.
+# purely as a label on the main price chart, set 'label_only' to YES in the
+# script settings window.
 #
 # LICENSE ---------------------------------------------------------------------
 #
@@ -74,24 +75,23 @@
 # =============================================================================
 
 
+input label_only       = YES; #Hint label_only: use this script only as a label (supercedes 'show_rank_label')
+input show_rank_label  = YES; #Hint show_rank_label: Toggle display of a label to display the rank value (superceded by 'label_only')
 input rank_type        = FundamentalType.IMP_VOLATILITY; #Hint rank_type: Data on which to compute a percentile rank
 input rank_multiplier  = 100; #Hint rank_multiplier: 100 turns the percentile into a percentage, 1 leaves it as a decimal
 input rounding         = 2; #Hint rounding: Number of decimal digits to which rank value shall round
 input days_range       = 252; #Hint days_range: 252 ~= 12 mth<br>189 ~= 9 mth<br>126 ~= 6 mth<br>63 ~= 3 mth
 input agg_per          = AggregationPeriod.DAY; #Hint agg_per: Must be DAY or greater for IV computations
-input use_chart_ap     = NO; #Hint use_chart_ap: Set to YES to utilize the chart's aggregation period
-input show_rank_label  = YES; #Hint show_rank_label: Toggle display of a label to display the rank value
+input use_chart_ap     = NO; #Hint use_chart_ap: Set to YES to utilize the chart's aggregation period and supercede 'agg_per'
 input no_nan_rank      = YES; #Hint no_nan_rank: If YES, return the previous rank if current data is NaN
 input high_alert       = 50; #Hint high_alert: Percent equal to or above which to change rank display color
 input low_alert        = 50; #Hint low_alert: Percent strictly below which to change rank display color
-#input real_time        = YES; #Hint real_time: use chart ap as the data's current value (ideally this would be tick data)
-# real_time flag is currently unnecessary as streaming "tick" data is received for data[0] call regardless of aggregation period and except for IV
 
 # -------------------------------------------------------------------------
 # Ensure Aggregation Period is supported per the Fundamental Type specified
 # -------------------------------------------------------------------------
 #
-# IMP_VOLATILITY does not support Aggregration periods less than 1 day. 
+# IMP_VOLATILITY does not support Aggregration periods less than 1 day.
 # So, display at least the daily IV value.
 #
 # TODO: Eliminate Agg Period checking code for IV once imp_vol() supports all agg periods
@@ -103,7 +103,7 @@ def ap        = If( ap_choice < AggregationPeriod.DAY && FundamentalType.IMP_VOL
 # Adjust high and low alert thresholds to account for rank multiplier
 # -------------------------------------------------------------------------
 
-#TODO: may need declare rank last in order for this value to be returned as the study's value
+#TODO: may need to declare rank last in order for this value to be returned as the study's value
 
 plot rank;  # declare here so it appears first in strategy settings box on TOS 
 plot hi_alert = high_alert * rank_multiplier / 100.0;
@@ -114,9 +114,10 @@ plot lo_alert = low_alert  * rank_multiplier / 100.0;
 # -------------------------------------------------------------------------
 #
 # If any NaNs are present in the data, highest/lowest functions will return NaN.
-# So, we must fill those NaNs (aka, gaps in the data) with useful data that
-# will not alter the data to cause highest/lowest to return incorrect values.
-# We will fill the gap with the previous value received.
+# These NaNs (aka, gaps in the data) must be filled in a way that does not cause
+# the highest/lowest functions to return incorrect values.
+#
+# Method 1 is to fill gaps with the previous value received.
 #
 # Note:  
 #
@@ -138,23 +139,20 @@ plot lo_alert = low_alert  * rank_multiplier / 100.0;
 
 #def data = if !IsNaN(Fundamental(rank_type, period=ap)) then Fundamental(rank_type, period=ap) else data[1];
 
-# Unfortunately, the above method doesn't work if 'ap'=DAY and the chart's 
-# actual ap is less than DAY (e.g., 5 mins). The above method, taken from
-# a native TOS ThinkScript, is technically incorrect since TOS initializes
-# values to 0. Normally, we aren't affected because the erroneous value
-# falls off the edge of our lookback period. However, this incorrectness 
-# really rears its head in the scenario described as, during real time 
-# streaming data on a 5 min chart with user ap set to DAY, data[1] returns 0 
-# and lowest is permanently 0. Something going on with ThinkScript 
-# underlying implementation that causes a difference...
-
-# So, we must instead fill the gaps with saturated values.
+#   Unfortunately, the above method 1 doesn't work if 'ap'=DAY and the chart's 
+#   actual ap is less than DAY (e.g., 5 mins). This method, taken from a native
+#   TOS ThinkScript, is technically incorrect since TOS initializes values to 0.
+#   Normally, we aren't affected because the erroneous value falls off the edge 
+#   of our lookback period. However, this incorrectness rears its head with real
+#   time streaming data on a 5 min chart and user ap set to DAY: 
 #
-#   Since we need both high and low data, this gap fill will require storage x2.
-#   It is a waste of memory but I haven't figured out a way to circumvent it due
-#   to the initial condition (i.e., the very first value could be a NaN and so
-#   there would be no previous valid value to fill with) and the other issue
-#   described above.
+#      data[1] returns 0 and lowest is permanently 0
+#
+#   This difference in behavior may point to some underlying ThinkScript issue...
+
+# Method 2 is to fill gaps with saturated values.
+#
+#   Since we need both high and low data, this method require storage x2.
 #
 # TODO: Figure out how to eliminate this waste of memory
 
@@ -190,12 +188,12 @@ else
 def  lo   =  Lowest(gapsPeggedHi, days_range); # use gaps pegged hi to ensure correct selection of the min value for known data
 def  hi   = Highest(gapsPeggedLo, days_range); # use gaps pegged lo to ensure correct selection of the max value for known data
 
-# Cannot use recursion if variable is a plot. So compute using a 'def'
-# and copy result to a 'plot'. This is another waste of memory that 
-# only functions to provide non-nan values of current fundamental data
-# is NaN. 
+# Cannot use recursion if variable is a plot. So compute using a 'def' and
+# copy result to a 'plot'. This is another waste of memory that only
+# functions to provide non-nan values if current fundamental data is NaN.
 #
 # TODO: figure out a way to eliminate this waste of space
+
 def  rank_val = if IsNaN(Fundamental(rank_type, period=ap)) && no_nan_rank then rank_val[1] else Round(rank_multiplier * (Fundamental(rank_type, period=ap) - lo) / (hi - lo), rounding); 
 rank = rank_val;
 
@@ -221,29 +219,9 @@ lo_alert.SetDefaultColor( Color.YELLOW );
 
 # select the label's prefix based on the fundamental type -----------------
 
-# unfortunately, ThinkScript doesn't recognize fundamental type as an enum.
-# double unfortunately, we can't simply assign a string to a def.....
-# so we have to embed a series of if,then,else statements in the string
-# portion of the AddLabel function instead of this clenaer 
-# switch/case/assignment method commented out below.
+# cannot use switch/case as ThinkScript's fundamental types are not enums
 
-#def lbl_prefix;
-#switch ( rank_type ) {
-#case FundamentalType.IMP_VOLATILITY: lbl_prefix = "IV";
-#case FundamentalType.OPEN          : lbl_prefix = "$O";
-#case FundamentalType.HIGH          : lbl_prefix = "$H";
-#case FundamentalType.LOW           : lbl_prefix = "$L";
-#case FundamentalType.CLOSE         : lbl_prefix = "PRICE";
-#case FundamentalType.HL2           : lbl_prefix = "$HL2";
-#case FundamentalType.HLC3          : lbl_prefix = "$HLC3";
-#case FundamentalType.OHLC4         : lbl_prefix = "$OHLC4";
-#case FundamentalType.VWAP          : lbl_prefix = "VWAP";
-#case FundamentalType.VOLUME        : lbl_prefix = "VOLUME ";
-#case FundamentalType.OPEN_INTEREST : lbl_prefix = "OI";
-#default                            : lbl_prefix = "";       
-#}
-
-AddLabel(show_rank_label, 
+AddLabel(show_rank_label OR label_only, 
               Concat( if rank_type == FundamentalType.IMP_VOLATILITY then "IV "
          else if rank_type == FundamentalType.OPEN           then "$O " 
          else if rank_type == FundamentalType.HIGH           then "$H " 
@@ -258,3 +236,10 @@ AddLabel(show_rank_label,
          else                                                     "",
          "RANK " + rank), 
          rank.TakeValueColor() );
+
+# hide plots if user wants labels only ------------------------------------
+
+hi_alert.SetHiding( label_only );
+lo_alert.SetHiding( label_only );
+rank.SetHiding( label_only );
+
