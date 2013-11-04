@@ -26,11 +26,16 @@
 #     current rank will return NaN. If instead the previous valid non-NaN
 #     rank is desired, set 'no_nan_rank' to yes. 
 #
-#   > The "previous valid non-NaN data" is based on the aggregation period
-#     and not real time streaming data available during market hours. For
-#     example, if ap is DAY, yesterday's rank will be returned. This could
-#     have the effect of "jumping" rank values if the real time streaming
-#     data has NaN gaps.
+#   > The "previous valid non-NaN data" is based on the value computed for
+#     the previous rank. Very simply, if fundamental data is NaN, then
+#     rank[1] will be returned, otherwise (value-lowest)/(highest-lowest).
+#     So, due to initial conditions, it is possible for the first value,
+#     and following values until non-NaN data emerges, is zero.
+#
+#     What using rank[1] means for real time streaming data (market hours
+#     data in OnDemand mode or Live mode) depends on how the underlying
+#     TOS ThinkScript implementation populates/grows the rank array
+#     during this period regardless of AP.
 #
 # This script can be used as a plot and as a label. If displayed on a lower
 # subgraph, the rank and its hi and lo alert triggered instances will be
@@ -92,7 +97,7 @@ input low_alert        = 50; #Hint low_alert: Percent strictly below which to ch
 # TODO: Eliminate Agg Period checking code for IV once imp_vol() supports all agg periods
 
 def ap_choice = if use_chart_ap then GetAggregationPeriod() else agg_per;
-def ap        = if( ap_choice < AggregationPeriod.DAY && FundamentalType.IMP_VOLATILITY == rank_type, AggregationPeriod.DAY, ap_choice );
+def ap        = If( ap_choice < AggregationPeriod.DAY && FundamentalType.IMP_VOLATILITY == rank_type, AggregationPeriod.DAY, ap_choice );
 
 # -------------------------------------------------------------------------
 # Adjust high and low alert thresholds to account for rank multiplier
@@ -131,24 +136,75 @@ plot lo_alert = low_alert  * rank_multiplier / 100.0;
 #         that first value is still within 'days_range' will fail with NaN
 #         being returned as the rank value
 
-def data = if !IsNaN(Fundamental(rank_type, period=ap)) then Fundamental(rank_type, period=ap) else data[1];
+#def data = if !IsNaN(Fundamental(rank_type, period=ap)) then Fundamental(rank_type, period=ap) else data[1];
+
+# Unfortunately, the above method doesn't work if 'ap'=DAY and the chart's 
+# actual ap is less than DAY (e.g., 5 mins). The above method, taken from
+# a native TOS ThinkScript, is technically incorrect since TOS initializes
+# values to 0. Normally, we aren't affected because the erroneous value
+# falls off the edge of our lookback period. However, this incorrectness 
+# really rears its head in the scenario described as, during real time 
+# streaming data on a 5 min chart with user ap set to DAY, data[1] returns 0 
+# and lowest is permanently 0. Something going on with ThinkScript 
+# underlying implementation that causes a difference...
+
+# So, we must instead fill the gaps with saturated values.
+#
+#   Since we need both high and low data, this gap fill will require storage x2.
+#   It is a waste of memory but I haven't figured out a way to circumvent it due
+#   to the initial condition (i.e., the very first value could be a NaN and so
+#   there would be no previous valid value to fill with) and the other issue
+#   described above.
+#
+# TODO: Figure out how to eliminate this waste of memory
+
+def gapsPeggedHi;
+def gapsPeggedLo;
+
+if IsNaN(Fundamental(rank_type, period = ap))
+{
+    gapsPeggedHi = Double.POSITIVE_INFINITY;
+    gapsPeggedLo = Double.NEGATIVE_INFINITY;
+}
+else
+{
+    gapsPeggedHi = Fundamental(rank_type, period = ap);
+    gapsPeggedLo = Fundamental(rank_type, period = ap);
+}
 
 # -------------------------------------------------------------------------
 # Query the high and low range of the data and compute the present rank
 # -------------------------------------------------------------------------
 #
-# If 'no_nan_rank' is enabled by the user, the gap filled data will be used
-# to compute rank. This essentially has the effect of computing the previous
-# AggregationPeriod's (e.g. DAY) rank when a gap is encountered.
+# If 'no_nan_rank' is enabled by the user, the previously computed rank
+# will be returned if gaps are encountered in the fundamental data. If 
+# there is no previously computed rank, the value returned will be what 
+# TOS uses to initialize variables: 0 as of 11/4/2013.
 #
-# Otherwise, the non gap filled data set will be used and result in a NaN
-# computation for rank when a gap is encountered.
+# Otherwise, NaN will be returned when a gap is encountered.
 #
 # TODO: may need to distinguish between gap meaning no data period vs. a temporary hole in the data (like a halt)
 
-def  lo   =  Lowest(data, days_range);
-def  hi   = Highest(data, days_range);
-rank = Round(rank_multiplier * ( (if no_nan_rank then data else Fundamental(rank_type, period=ap)) - lo ) / (hi - lo), rounding); 
+#def  lo   =  Lowest(data, days_range); # re-enable if 'data' becomes valid again for all scenarios
+#def  hi   = Highest(data, days_range); # re-enable if 'data' becomes valid again for all scenarios
+def  lo   =  Lowest(gapsPeggedHi, days_range); # use gaps pegged hi to ensure correct selection of the min value for known data
+def  hi   = Highest(gapsPeggedLo, days_range); # use gaps pegged lo to ensure correct selection of the max value for known data
+
+# Cannot use recursion if variable is a plot. So compute using a 'def'
+# and copy result to a 'plot'. This is another waste of memory that 
+# only functions to provide non-nan values of current fundamental data
+# is NaN. 
+#
+# TODO: figure out a way to eliminate this waste of space
+def  rank_val = if IsNaN(Fundamental(rank_type, period=ap)) && no_nan_rank then rank_val[1] else Round(rank_multiplier * (Fundamental(rank_type, period=ap) - lo) / (hi - lo), rounding); 
+rank = rank_val;
+
+# DEBUGGING TOOLS
+#AddLabel(1, Concat("lo: ", lo), Color.CYAN);
+#AddLabel(1, Concat("hi: ", hi), Color.CYAN);
+#AddLabel(1, Concat("d[0]: ", data[0]), Color.CYAN);
+#AddLabel(1, Concat("d[1]: ", data[1]), Color.CYAN);
+#AddLabel(1, Concat("f[0]: ", Fundamental(rank_type, period=ap)), Color.CYAN);
 
 # -------------------------------------------------------------------------
 # Create visual effects, display label if requested
