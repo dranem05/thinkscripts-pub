@@ -46,6 +46,7 @@ diff.Hide();
 
 input period = 252; # default to 60 trading days ~3 months; 252 ~= 12 months
 input ap = AggregationPeriod.DAY; #getAggregationPeriod();
+#input ap = AggregationPeriod.FIVE_MIN; #getAggregationPeriod();
 #def iv = imp_volatility(period=ap); # if any NANs are present in the data, highest/lowest functions will return NaN
 def iv = if !IsNaN(imp_volatility(period = ap)) then imp_volatility(period = ap) else 0;
 def iv2 = if !IsNaN(imp_volatility(period = ap)) then imp_volatility(period = ap) else iv2[1];
@@ -66,12 +67,14 @@ else
     hi = Highest(iv2, period);
 }
 def cv = imp_volatility(period = ap);
+def cvcap = imp_volatility(period = getAggregationPeriod());
 #plot ivp = ((cv - lo)/(hi-lo)*100);
 plot ivp = ((imp_volatility(period = ap) - lo) / (hi - lo) * 100); # if most recent imp_vol data is NaN, this result will be NaN
 
 AddLabel(1, Concat("iv:", iv), Color.CYAN);
 AddLabel(1, Concat("iv2:", iv2), Color.CYAN);
 AddLabel(1, Concat("cv:", cv), Color.CYAN);
+AddLabel(1, Concat("cvcap:", cvcap), Color.CYAN);
 AddLabel(1, Concat("lo:", lo), Color.CYAN);
 AddLabel(1, Concat("lo[3]:", lo[3]), Color.CYAN);
 AddLabel(1, Concat("hi:", hi), Color.CYAN);
@@ -83,6 +86,7 @@ AddLabel(1, Concat("IV%:", ivp), Color.CYAN);
 # [PASS] using recursive iv2[1] does not cause compilation error and also returns same needed values as gapsPegged does but with less waste of memory and coding
 # [FAIL] cannot obtain realtime iv changes during the trading data (imp_vol() function returns NaN everytime) 
 # [FAIL] if chart AP is less than designated AP, the iv2[1] recursive trick does not work and lowest keeps returning zero (e.g., AP = DAY and chart AP = 5 mins)
+# [PASS] imp_vol for aggregation period < DAY is not supported by TOS
 
 
 # ------------------------------------------------------------------
@@ -131,7 +135,8 @@ def cval = close(period=cap)[0];  # explicitly call out the most recent closing 
 def pval = close(period=ap)[10];  # explicitly call out the closing price 10 periods ago based on secondary ap
 # Due to mixed aggregation periods, pct_chg will be computed based
 # on something funky. I still have yet to decipher what values it
-# is using, but the closest result is from AP[1]/AP[10], not CAP[0]/CAP[10]
+# is using, but the closest result is from AP[1]/AP[10] in OnDemand, 
+# and CAP[0]/CAP[10] in Live mode, the latter of which is 
 # as expected from using mixed type per thinkscript website:
 # http://tlc.thinkorswim.com/center/charting/thinkscript/tutorials/Chapter-12---Referencing-Secondary-Aggregation
 plot pct_chg  = round(100 * (close(period=cap) / close(period=ap)[10] - 1),2); # computes unexpected value unless cap == ap
