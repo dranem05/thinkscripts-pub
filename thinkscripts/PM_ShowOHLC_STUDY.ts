@@ -1,7 +1,7 @@
-# ======================================================
-#Hint: <b>Show OHLC</b><br>Plots previous OHLC and today's OHL
+# =============================================================================
+#Hint: <b>PM Show OHLC</b><br>Plots previous OHLC and today's OHL
 #
-# Show OHLC
+# PM Show OHLC
 #
 # @author: Patrick Menard, @dranem05, dranem05@alum.mit.edu
 #
@@ -29,6 +29,34 @@
 # which can be found here:
 #
 # http://www.shadowtrader.net/forum/viewtopic.php?f=9&t=268&sid=648ed5a68a84c1d587b3720efb2bd20f#p891
+#
+# LICENSE ---------------------------------------------------------------------
+#
+# This PM_ShowOHLC script is free software distributed under the terms of the
+# MIT license reproduced here:
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2013 Patrick Menard, http://www.dranem05.com, http://dranem05.blogspot.com
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
 # ======================================================
 
 # TODO: show plot line bubbles at an earlier time so they don't block regular trading hours data
@@ -70,12 +98,13 @@ def   CTDayIsCurrent    = currentDay_CT == mostRecentDay_RT;
 def   marketIsOpen      = 0 <= SecondsFromTime( marketOpenTime ) && SecondsTillTime( marketCloseTime ) > 0;
 def   ap                = AggregationPeriod.DAY; #TODO: make an input
 
+plot  ohlc_colors;  # phantom plot to trick TOS platform, details in look and feel section below
 plot  prevOpen;
 plot  prevHigh;
 plot  prevLow;
 plot  prevClose;
-#plot  onHigh;
-#plot  onLow;
+#plot  onHigh; # overnight high
+#plot  onLow;  # overnight low
 plot  dayOpen;
 plot  dayHigh;
 plot  dayLow;
@@ -168,6 +197,13 @@ def isMarketOpenTime    =  SecondsFromTime( marketOpenTime  ) == 0 && SecondsTil
 def prevBubbleIsEnabled = isMarketOpenTime && showPrevBubbles;
 #def dayBubbleIsEnabled  = isMarketOpenTime && showDayBubbles;
 
+# Create phantom plot to facilitate user color selection
+
+ohlc_colors = 0;          # signals TOS platform to display color select widget
+ohlc_colors.SetHiding(1); # never needs to be displayed on a chart
+ohlc_colors.HideBubble(); 
+ohlc_colors.HideTitle();
+
 # Open Plot Look & Feel --------------------------------
 
 prevOpen.AssignValueColor( Color.DARK_GRAY );            # Strong Gray
@@ -179,8 +215,11 @@ AddChartBubble( !IsNaN( prevOpen ) && prevBubbleIsEnabled && showPreviousDay && 
 
 # High Plot Look & Feel --------------------------------
 
-prevHigh.AssignValueColor( CreateColor(255, 255,   0) ); # Strong Yellow
-dayHigh.AssignValueColor(  CreateColor(255, 255, 100) ); # Weak Yellow
+ohlc_colors.DefineColor("PH", CreateColor(255, 255,   0) ); # Strong Yellow
+ohlc_colors.DefineColor("H" , CreateColor(255, 255, 100) ); # Weak Yellow
+
+prevHigh.AssignValueColor( ohlc_colors.Color("PH") );
+dayHigh.AssignValueColor(  ohlc_colors.Color("H" ) );
 prevHigh.SetStyle( previousStyle );
 dayHigh.SetStyle( dayStyle );
 AddChartBubble( !IsNaN( prevHigh ) && prevBubbleIsEnabled && showPreviousDay && showPreviousHigh,
@@ -188,8 +227,11 @@ AddChartBubble( !IsNaN( prevHigh ) && prevBubbleIsEnabled && showPreviousDay && 
 
 # Low Plot Look & Feel ---------------------------------
 
-prevLow.AssignValueColor(  CreateColor(255,   0, 255) ); # Strong Magenta
-dayLow.AssignValueColor(   CreateColor(255, 100, 255) ); # Weak Magenta
+ohlc_colors.DefineColor("PL", CreateColor(255,   0, 255)); # Strong Magenta
+ohlc_colors.DefineColor("L" , CreateColor(255, 100, 255)); # Weak Magenta
+
+prevLow.AssignValueColor(  ohlc_colors.Color("PL") );
+dayLow.AssignValueColor(   ohlc_colors.Color("L" ) );
 prevLow.SetStyle( previousStyle );
 dayLow.SetStyle( dayStyle );
 AddChartBubble( !IsNaN( prevLow  )  && prevBubbleIsEnabled && showPreviousDay && showPreviousLow,
