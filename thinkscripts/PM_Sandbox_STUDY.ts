@@ -84,7 +84,8 @@ AddLabel(1, Concat("IV%:", ivp), Color.CYAN);
 # [FAIL] iv set to 0 if isNaN clobbers the data
 # [PASS] gapsPegged code ensures we collect the right hi and lo IV values for the specified range
 # [PASS] using recursive iv2[1] does not cause compilation error and also returns same needed values as gapsPegged does but with less waste of memory and coding
-# [FAIL] cannot obtain realtime iv changes during the trading data (imp_vol() function returns NaN everytime) 
+# [FAIL] cannot obtain realtime iv changes during the trading day in OnDemand (imp_vol() function returns NaN everytime) 
+# [PASS] can obtain realtime iv changes during the trading day in Live mode (imp_vol() function returns a non-NaN value) 
 # [FAIL] if chart AP is less than designated AP, the iv2[1] recursive trick does not work and lowest keeps returning zero (e.g., AP = DAY and chart AP = 5 mins)
 # [PASS] imp_vol for aggregation period < DAY is not supported by TOS
 

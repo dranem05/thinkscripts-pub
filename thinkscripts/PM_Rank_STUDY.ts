@@ -21,7 +21,8 @@
 #     Type specified, regardless of aggregation period. As a result, the 
 #     rank value will also change in real time, except for IV as described
 #     in the previous note. In OnDemand, imp_volatility() returns NaN
-#     whereas in Live mode, imp_volatility() returns a non-NaN static value.
+#     whereas in Live mode, imp_volatility() returns a non-NaN value that
+#     does change to some degree.
 #
 #   > Sometimes fundamental data will be returned as NaN. As a result,
 #     current rank will return NaN. If instead the previous valid non-NaN
@@ -234,7 +235,7 @@ AddLabel(show_rank_label OR label_only,
          else if rank_type == FundamentalType.VOLUME         then "VOLUME "
          else if rank_type == FundamentalType.OPEN_INTEREST  then "OI " 
          else                                                     "",
-         "RANK " + rank), 
+         "RANK("+days_range+") " + rank), 
          rank.TakeValueColor() );
 
 # hide plots if user wants labels only ------------------------------------
