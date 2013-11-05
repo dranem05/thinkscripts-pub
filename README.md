@@ -33,7 +33,23 @@ A playground to wrangle with thinkscript syntax, functions, and assumptions.
 How Do I Install/Update ThinkScripts?
 -------------------------------------
 
+#### Downloading the script(s)
+
+Enumerated below are a few ways to obtain these scripts:
+
+1. Clone this project in the following ways:
+   1. Click on the `Clone in Desktop` link located on the right sidebar on GitHub
+   2. Run `git clone https://github.com/dranem05/thinkscripts-pub.git` locally
+2. Download an untracked version of these files:
+   1. Click on the `Download ZIP` link located on the right sidebar on GitHub
+   2. Unzip the dowloaded archive to a local directory
+3. Download a specific script:
+   1. Navigate to the file on GitHub
+   2. Click on the source file
+   3. Click on `Raw` to download the file
+   
 #### Installing
+
 1. Download this project into a local directory
 2. Fire up TOS
 3. Open up a chart
@@ -43,14 +59,13 @@ How Do I Install/Update ThinkScripts?
 7. Navigate to the thinkscripts directory where you dowloaded this project  
    _It should be somewhere like: `path/to/download/thinkscripts-pub.git/thinkscipts/`_
 8. Select the desired study and click open (or just double click the desired study)
-9. __*Done*__
 
 The script should now be available in your TOS database.
 
 #### Updating
 
 1. Get the latest version of the script  
-   _run `git fetch` if you created a local clone of this project_
+   _run `git pull origin` if you created a local clone of this project_
 2. Fire up TOS
 3. Open up a chart
 4. Click on the `analysis tools` icon (looks like something dripping)
@@ -61,11 +76,10 @@ The script should now be available in your TOS database.
 8. Select the desired study and click open (or just double click the desired study)
 9. You will be asked if you really want to replace the study in TOS
 10. Click on `Yes`
-11. __*Done*__
 
 Note, that the "latest version of the script" could be local edits you
 made in your local copy of the file outside of TOS. The same steps above
-allow you to update your TOS version of the script.
+allow you to update the TOS version of the script.
 
 #### Exporting Changes Made via TOS's ThinkScript Editor
 
@@ -76,6 +90,7 @@ copy of this project.
 2. Click on `export`
 3. You will be asked where you would like the study to be exported
 4. Export to your local directory of thinkscripts
+5. Confirm your desire to overwrite the local copy with this new copy
 
 If your local thinkscripts directory is a git clone location, you can 
 use it to maintain your own version controlled copy of the scripts.
@@ -84,6 +99,6 @@ License
 -------
 Code is under the [MIT license][license].
 
-[license]:https://github.com/dranem05/thinkscripts/path/to/LICENSE
+[license]:https://github.com/dranem05/thinkscripts-pub/blob/master/LICENSE
 [fundamental data]:http://tlc.thinkorswim.com/center/charting/thinkscript/reference/Constants/FundamentalType/index
 [agg_per]:http://tlc.thinkorswim.com/center/charting/thinkscript/reference/Constants/AggregationPeriod/index 
