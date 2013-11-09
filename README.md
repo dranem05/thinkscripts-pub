@@ -3,12 +3,12 @@ PM ThinkScripts
 This is a collection of handy thinkscripts for use on the thinkorswim (TOS)
 trading platform. There are two types of ThinkScripts:
 
-1. __*ThinkScripts*__
+1. __*ThinkScripts*__  
    These scripts are full powered and intended for use on charts,
    scan queries, and conditional orders. The instructions for 
    importing/exporting ThinkScripts applies to these scripts.
 
-2. __*Custom Quote Scripts*__
+2. __*Custom Quote Scripts*__  
    These scripts are intended for use on watchlists, anywhere
    a custom quote can be inserted as a column, and scan queries. 
    To use these, the user must copy and paste the code into a 
@@ -79,7 +79,7 @@ be the preferred method so there will be one source file for Rank related
 computations. Until then, it's easier/faster to use the rank specific cq
 scripts above.
 
-__*PM Rank Coloring CQ*__
+__*PM Rank Coloring CQ*__  
 This is an example script to show how one can enable the coloring of data
 if the core script is referenced. As of 2013-11-09, the TOS limitations
 will essentially copy the core script code into a custom script using the 
@@ -153,12 +153,12 @@ use it to maintain your own version controlled copy of the scripts.
 #### Using/Referencing in Custom Quotes and Scan Queries
 
 1. Navigate to the `Condition Wizard` tab
-   1. For Custom Quotes
+   1. *For Custom Quotes*
       1. Follow the instructions in the "How Do I Install/Update 
          Custom Quote Scripts" section up to the step just prior
          to clicking on the `thinksScript Editor` tab.
       2. Click on the `Condition Wizard` tab.
-   2. For Scan Query Criteria
+   2. *For Scan Query Criteria*
       1. Click on the `Scan` tab
       2. Click on `Add Study Filter`
       3. Click on the study selector widget
@@ -171,9 +171,11 @@ use it to maintain your own version controlled copy of the scripts.
 7. Select which plot to use as the scripts _value_
 8. Select your comparison operator, etc.
 
-*IMPORTANT:* Once referenced, TOS essentially creates an exact copy of the
-referenced script and uses this copy. Thus any changes made to the original
-DOES NOT PROPAGATE to the custom script. You have to re-reference the script
+**IMPORTANT:** 
+
+Once referenced, TOS essentially creates an exact copy of the referenced 
+script and uses this copy. Thus any changes made to the original *DOES NOT
+PROPAGATE* to the custom script. You have to re-reference the script
 to propagate any changes that were made to the original.
 
 How Do I Install/Update Custom Quote Scripts?
@@ -185,8 +187,8 @@ TOS is a bit  different.
 
 #### Installing
 
-1. Right click on a column name in a watchlist type of widget
-   __(or nearly anything that looks like a table with columns)__
+1. Right click on a column name in a watchlist type of widget  
+   _(or nearly anything that looks like a table with columns)_
 2. Click on `Customize`
 3. Under the `Available Items` left side panel, search for `custom`
 4. Click on the scroll icon that appears to the left of any `custom` item
@@ -198,8 +200,8 @@ TOS is a bit  different.
 #### Updating
 
 1. Get the latest version of the script
-2. Right click on a column name in a watchlist type of widget
-   __(or nearly anything that looks like a table with columns)__
+2. Right click on a column name in a watchlist type of widget  
+   _(or nearly anything that looks like a table with columns)_
 3. Click on `Customize`
 4. Under the `Available Items` left side panel, search for the desired script
 5. Click on the scroll icon that appears to the left of that script
