@@ -1,7 +1,7 @@
 PM ThinkScripts
 ===============
 This is a collection of handy thinkscripts for use on the thinkorswim (TOS)
-trading platform. There are two types of ThinkScripts:
+trading platform. There are two types of [ThinkScript][]:
 
 1. __*ThinkScripts*__
    These scripts are full powered and intended for use on charts,
@@ -10,17 +10,17 @@ trading platform. There are two types of ThinkScripts:
 
 2. __*Custom Quote Scripts*__
    These scripts are intended for use on watchlists, anywhere
-   a custom quote can be inserted as a column, and scan queries. 
+   a [custom quote][] can be inserted as a column, and scan queries.
    To use these, the user must copy and paste the code into a 
    custom quote thinkscript code area. TOS offers 20 custom quote
    slots.
 
 The workflow for ThinkScripts and Custom Quote Scripts can be made much 
 more fluid once TOS enables features open to builtin scripts to user
-created scripts. These are features such as the #Wizard keyword, direct 
-referencing of user created scripts (not just builtin scripts), not 
-creating a copy of referenced thinkscript code when referencing them
-as a condition in a custom script (this causes changes in the original
+created scripts. These are features such as the `#Wizard` keyword, [direct 
+referencing][script referencing] of user created scripts (not just builtin
+scripts), not creating a copy of referenced thinkscript code when referencing
+them as a condition in a custom script (this causes changes in the original
 to not propagate to the custom script), etc.
 
 What ThinkScripts Are Available?
@@ -28,19 +28,19 @@ What ThinkScripts Are Available?
 
 __*PM Rank*__  
 Calculates the percentile rank for the current value of the selected 
-[Fundamental Data][fundamental data] (IV, Price, etc.) as it compares 
-to its range over a user or chart specified number of [periods][agg_per]
-(FIVE_MIN, DAY, etc). It is essentially `(value-lowest)/(highest-lowest)`.
-This script can be used as a plot and as a label.
+[Fundamental Data][] (IV, Price, etc.) as it compares to its range over a 
+user or chart specified number of [periods][agg_per] (FIVE_MIN, DAY, etc).
+It is essentially `(value-lowest)/(highest-lowest)`. This script can be 
+used as a plot and as a label.
 
 __*PM Percent Change*__  
 Calculates the percent change in value from now and N periods ago where:
 
-  * *value* is any data type enumerated by [Fundamental Data][fundamental data] 
-    such as CLOSE, IV, etc., 
+  * *value* is any data type enumerated by [Fundamental Data][] such as
+    CLOSE, IV, etc., 
   * *N* is any user specified lookback length, and 
-  * *period* is any user or chart selected [aggregation period][agg_per] such as 
-    FIVE_MIN, DAY, etc.
+  * *period* is any user or chart selected [aggregation period][agg_per] 
+    such as FIVE_MIN, DAY, etc.
 
 This script can be used as a plot and as a label.
 
@@ -48,7 +48,7 @@ __*PM Show OHLC*__
 Plots the previous day's OHLC and today's OHL.
 
 __*PM Sandbox*__  
-A playground to wrangle with thinkscript syntax, functions, and assumptions.
+A playground to wrangle with [thinkscript][] syntax, functions, and assumptions.
 
 #### Custom Quote Scripts
 
@@ -153,12 +153,12 @@ use it to maintain your own version controlled copy of the scripts.
 #### Using/Referencing in Custom Quotes and Scan Queries
 
 1. Navigate to the `Condition Wizard` tab
-   1. For Custom Quotes
+   1. For [Custom Quotes][custom quote]
       1. Follow the instructions in the "How Do I Install/Update 
          Custom Quote Scripts" section up to the step just prior
          to clicking on the `thinksScript Editor` tab.
       2. Click on the `Condition Wizard` tab.
-   2. For Scan Query Criteria
+   2. For [Scan Query Criteria][scan_q]
       1. Click on the `Scan` tab
       2. Click on `Add Study Filter`
       3. Click on the study selector widget
@@ -207,6 +207,12 @@ TOS is a bit  different.
 7. Copy and paste the updated code into the thinkScript Editor
 8. Click on `OK`
 
+References
+----------
+* [TOS Charting](http://tlc.thinkorswim.com/center/charting/index.html)
+* [thinkScript][]
+* [Custom Quote][]
+
 License
 -------
 Code is under the [MIT license][license].
@@ -214,3 +220,8 @@ Code is under the [MIT license][license].
 [license]:https://github.com/dranem05/thinkscripts-pub/blob/master/LICENSE
 [fundamental data]:http://tlc.thinkorswim.com/center/charting/thinkscript/reference/Constants/FundamentalType/index
 [agg_per]:http://tlc.thinkorswim.com/center/charting/thinkscript/reference/Constants/AggregationPeriod/index 
+[custom quote]:http://tlc.thinkorswim.com/center/charting/thinkscript/thinkscript-integration/customquotes
+[scan_q]:http://tlc.thinkorswim.com/center/charting/thinkscript/thinkscript-integration/studyfilters
+[thinkscript]:http://tlc.thinkorswim.com/center/charting/thinkscript/index
+[script referencing]:http://tlc.thinkorswim.com/center/charting/thinkscript/tutorials/Chapter-14---Referencing-Other-Data
+[reference keyword]:http://tlc.thinkorswim.com/center/charting/thinkscript/reference/Reserved-Words/reference
