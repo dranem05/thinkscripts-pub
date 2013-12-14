@@ -85,6 +85,15 @@ if the core script is referenced. As of 2013-11-09, the TOS limitations
 will essentially copy the core script code into a custom script using the 
 `script {  } ` notation and add the coloring details below it.
 
+__*PM Percent Chg CQ*__  
+A bare bones distilled version of PM_PercentChg that only computes the %chg
+over 10 trading days rounded to one significant digit (one decimal place).
+Note, this script colors the value based on hi and lo alert thresholds.
+Edit the code to change the data type, lookback period, and alert coloring
+thresholds to fit your needs. Also, this script minimizes column space by
+not outputting the "%" character.
+
+
 How Do I Install/Update ThinkScripts?
 -------------------------------------
 
